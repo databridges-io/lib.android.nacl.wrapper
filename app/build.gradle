@@ -1,0 +1,103 @@
+plugins {
+    id 'com.android.library'
+}
+
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+android {
+    compileSdk 33
+
+    defaultConfig {
+        minSdk 21
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.appcompat:appcompat:1.4.2'
+    implementation 'com.google.android.material:material:1.6.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId 'io.databridges'
+            version '1.0.2'
+            artifactId 'databridges_nacl_wrapper'
+            artifact("$buildDir/outputs/aar/app-release.aar")
+
+
+            pom.withXml {
+                def dependenciesNode = asNode().appendNode('dependencies')
+                configurations.implementation.allDependencies.each {
+                    def dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', it.group)
+                    dependencyNode.appendNode('artifactId', it.name)
+                    dependencyNode.appendNode('version', it.version)
+                }
+            }
+            pom {
+                name = 'DataBridges Java NaCl wrapper for databridges library'
+                description = 'This is a Java client NaCl wrapper library for Databridges, targeted at Android.'
+                url = 'http://github.com/databridges-io/lib.android.nacl.wrapper'
+                inceptionYear = '2022'
+                license {
+                    name = 'MIT License'
+                    url = 'http://www.opensource.org/licenses/mit-license.php'
+                }
+
+                developer {
+                    id = 'optomate.io'
+                    name = 'Optomate Technologies Private Limited.'
+                    email = 'tech@optomate.io'
+                }
+                scm {
+                    connection = 'scm:git:git@github.com:databridges-io/lib.android.nacl.wrapper'
+                    developerConnection = 'scm:git:git@github.com:databridges-io/lib.android.nacl.wrapper'
+                    url = 'http://github.com/databridges-io/lib.android.nacl.wrapper'
+                }
+
+            }
+        }
+    }
+    repositories {
+
+            maven {
+                url = uri("file:\\\\C:\\mavenrepo\\")
+            }
+        /*
+        maven {
+            name = "OSSRH"
+            url = "https://s01.oss.sonatype.org/content/repositories/releases/"
+            credentials {
+                username = project.properties["ossrhUsername"]
+                password = project.properties["ossrhPassword"]
+            }
+        }
+*/
+    }
+}
+
+signing {
+    sign publishing.publications.release
+    sign configurations.archives
+}
